@@ -66,8 +66,14 @@
   </div>
 
   <div id="controls">
-    <label for="xgid-input">XGID string</label>
-    <input id="xgid-input" type="text"
+    <!-- Format toggle -->
+    <div id="format-toggle">
+      <button class="fmt-btn active" data-fmt="xgid">XGID</button>
+      <button class="fmt-btn"        data-fmt="gnubg">GnuBG</button>
+    </div>
+
+    <label for="id-input" id="id-label">XGID string</label>
+    <input id="id-input" type="text"
       placeholder="XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10"
       spellcheck="false" autocomplete="off"/>
     <div id="error-msg"></div>
@@ -79,41 +85,59 @@
 
   <div id="api-docs">
     <h2>URL API</h2>
-    <pre>?xgid=XGID=...
-&amp;flip=1
-&amp;bottom=1a1a1a&amp;top=ffffff
-&amp;ecl=0.42&amp;dcl=0.38&amp;end=0.44&amp;edt=0.51&amp;edp=1.00</pre>
+    <pre>?xgid=XGID=...          (XGID format)
+?gnubg=XXXXXXXXXXXXXX:XXXXXXXXXXXX  (GnuBG format)
+&flip=1
+&bottom=1a1a1a&top=ffffff
+&ecl=0.42&dcl=0.38&end=0.44&edt=0.51&edp=1.00</pre>
   </div>
 </main>
 
 <script src="xgid.js"></script>
+<script src="gnubgid.js"></script>
 <script src="board.js"></script>
 <script>
 // ── State ────────────────────────────────────────────────────────────────────
-const opts = {
-  flip:        false,
-  bottomColor: '#1a1a1a',
-  topColor:    '#ffffff',
-};
+const opts = { flip: false, bottomColor: '#1a1a1a', topColor: '#ffffff' };
 const equity = { ecl:null, dcl:null, end:null, edt:null, edp:null };
+let currentFmt = 'xgid';
 
-const DEFAULT = 'XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10';
+const DEFAULTS = {
+  xgid:  'XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10',
+  gnubg: 'GA8BnPAwnD/AgB:wEAAAAAAAAAA',
+};
+
+const PLACEHOLDERS = {
+  xgid:  'XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10',
+  gnubg: 'GA8BnPAwnD/AgB:wEAAAAAAAAAA',
+};
+
+const LABELS = {
+  xgid:  'XGID string',
+  gnubg: 'GnuBG ID  (PositionID:MatchID)',
+};
+
+// ── Parse any format ──────────────────────────────────────────────────────────
+function parseID(str, fmt) {
+  if (fmt === 'gnubg') return parseGnuBGID(str);
+  return parseXGID(str);
+}
 
 // ── Render ───────────────────────────────────────────────────────────────────
-function render(xgidStr) {
+function render(idStr, fmt) {
+  fmt = fmt || currentFmt;
   const errEl = document.getElementById('error-msg');
   errEl.textContent = '';
   let parsed, state;
   try {
-    parsed = parseXGID(xgidStr);
+    parsed = parseID(idStr, fmt);
     state  = buildRenderState(parsed);
   } catch(e) {
     errEl.textContent = '⚠ ' + e.message;
     return;
   }
   const canvas = document.getElementById('board');
-  const ctx    = canvas.getContext('2d');
-  drawBoard(ctx, state, opts);
+  drawBoard(canvas.getContext('2d'), state, opts);
   updateEquityPanel();
 }
 
@@ -121,8 +145,8 @@ function render(xgidStr) {
 function updateEquityPanel() {
   const panel = document.getElementById('equity-panel');
   const fields = {
-    ecl: 'eq-ecl-val', dcl: 'eq-dcl-val',
-    end: 'eq-end-val', edt: 'eq-edt-val', edp: 'eq-edp-val',
+    ecl:'eq-ecl-val', dcl:'eq-dcl-val',
+    end:'eq-end-val', edt:'eq-edt-val', edp:'eq-edp-val',
   };
   let any = false;
   for (const [k, id] of Object.entries(fields)) {
@@ -139,49 +163,67 @@ function updateEquityPanel() {
   panel.classList.toggle('hidden', !any);
 }
 
+// ── Format toggle ─────────────────────────────────────────────────────────────
+function setFormat(fmt) {
+  currentFmt = fmt;
+  document.querySelectorAll('.fmt-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.fmt === fmt);
+  });
+  document.getElementById('id-label').textContent    = LABELS[fmt];
+  document.getElementById('id-input').placeholder    = PLACEHOLDERS[fmt];
+  document.getElementById('id-input').value          = '';
+}
+
+document.querySelectorAll('.fmt-btn').forEach(btn => {
+  btn.addEventListener('click', () => setFormat(btn.dataset.fmt));
+});
+
 // ── Boot ─────────────────────────────────────────────────────────────────────
 function boot() {
   const canvas = document.getElementById('board');
-  canvas.width  = CW;   // from board.js
+  canvas.width  = CW;
   canvas.height = CH;
 
   const params = Object.fromEntries(new URLSearchParams(window.location.search));
-  const xgid   = params.xgid || DEFAULT;
 
-  // Apply URL params to opts
+  // Detect format from URL
+  let idStr, fmt;
+  if (params.gnubg) { idStr = params.gnubg; fmt = 'gnubg'; }
+  else              { idStr = params.xgid;  fmt = 'xgid';  }
+
+  // Apply URL params
   if (params.flip)   opts.flip        = params.flip === '1';
   if (params.bottom) opts.bottomColor = '#' + params.bottom;
   if (params.top)    opts.topColor    = '#' + params.top;
-
-  // Apply URL params to equity
   for (const k of ['ecl','dcl','end','edt','edp']) {
     if (params[k] !== undefined) equity[k] = parseFloat(params[k]);
   }
 
   // Sync settings panel
-  document.getElementById('opt-flip').checked = opts.flip;
-  document.getElementById('opt-bottom-color').value = opts.bottomColor;
-  document.getElementById('opt-top-color').value    = opts.topColor;
+  document.getElementById('opt-flip').checked          = opts.flip;
+  document.getElementById('opt-bottom-color').value    = opts.bottomColor;
+  document.getElementById('opt-top-color').value       = opts.topColor;
   for (const k of ['ecl','dcl','end','edt','edp']) {
     const el = document.getElementById('eq-' + k);
     if (equity[k] !== null) el.value = equity[k];
   }
 
-  document.getElementById('xgid-input').value = xgid;
-  render(xgid);
+  setFormat(fmt);
+  document.getElementById('id-input').value = idStr || DEFAULTS[fmt];
+  render(idStr || DEFAULTS[fmt], fmt);
 }
 
 // ── Event listeners ───────────────────────────────────────────────────────────
 document.getElementById('render-btn').addEventListener('click', () => {
-  // Read equity values from inputs
   for (const k of ['ecl','dcl','end','edt','edp']) {
     const v = parseFloat(document.getElementById('eq-' + k).value);
     equity[k] = isNaN(v) ? null : v;
   }
-  render(document.getElementById('xgid-input').value.trim() || DEFAULT);
+  const val = document.getElementById('id-input').value.trim();
+  render(val || DEFAULTS[currentFmt]);
 });
 
-document.getElementById('xgid-input').addEventListener('keydown', e => {
+document.getElementById('id-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('render-btn').click();
 });
 
@@ -198,17 +240,17 @@ document.getElementById('menu-btn').addEventListener('click', () => {
 
 document.getElementById('opt-flip').addEventListener('change', e => {
   opts.flip = e.target.checked;
-  render(document.getElementById('xgid-input').value.trim() || DEFAULT);
+  render(document.getElementById('id-input').value.trim() || DEFAULTS[currentFmt]);
 });
 
 document.getElementById('opt-bottom-color').addEventListener('input', e => {
   opts.bottomColor = e.target.value;
-  render(document.getElementById('xgid-input').value.trim() || DEFAULT);
+  render(document.getElementById('id-input').value.trim() || DEFAULTS[currentFmt]);
 });
 
 document.getElementById('opt-top-color').addEventListener('input', e => {
   opts.topColor = e.target.value;
-  render(document.getElementById('xgid-input').value.trim() || DEFAULT);
+  render(document.getElementById('id-input').value.trim() || DEFAULTS[currentFmt]);
 });
 
 boot();

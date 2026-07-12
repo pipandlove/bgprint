@@ -104,6 +104,25 @@ canvas { display: block; }
 .eq-value { font-size: 0.82rem; font-family: monospace; font-weight: bold; color: #111; }
 .eq-value.neg { color: #888; }
 
+
+/* ── Format toggle ── */
+#format-toggle {
+  display: flex; gap: 0;
+  border: 1px solid #ccc; border-radius: 4px;
+  overflow: hidden; align-self: flex-start;
+  margin-bottom: 4px;
+}
+.fmt-btn {
+  padding: 6px 16px; background: #fff; color: #888;
+  border: none; font-size: 0.75rem; letter-spacing: 0.05em;
+  cursor: pointer; font-family: monospace;
+  border-right: 1px solid #ccc;
+  transition: background 0.15s, color 0.15s;
+}
+.fmt-btn:last-child { border-right: none; }
+.fmt-btn:hover { background: #f5f5f5; color: #444; }
+.fmt-btn.active { background: #222; color: #fff; }
+
 /* ── Controls ── */
 #controls {
   margin-top: 20px; width: 100%; max-width: 680px;
