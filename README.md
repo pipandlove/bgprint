@@ -1,7 +1,7 @@
-# bgboard
+# bgprint
 
 **A static, zero-dependency backgammon board renderer.**  
-Takes an XGID or GnuBG position ID in a URL parameter and renders a clean, monochrome SVG/Canvas board — no server, no build step, no dependencies.
+Parses an XGID string and renders a clean monochrome board on an HTML Canvas — no server, no build step, no dependencies.
 
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
@@ -10,66 +10,64 @@ Takes an XGID or GnuBG position ID in a URL parameter and renders a clean, monoc
 ## Live demo
 
 ```
-https://<your-username>.github.io/bgboard/?xgid=XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10
+https://<your-username>.github.io/bgprint/?xgid=XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10
 ```
+
+---
+
+## Project structure
+
+```
+bgprint/
+  index.html   ← page shell, settings panel, wiring
+  xgid.js      ← pure XGID parser (no rendering)
+  board.js     ← renderer (buildRenderState, drawBoard, computePips)
+  style.css    ← layout and settings panel styles
+  README.md    ← this file
+  LICENSE      ← CC BY-SA 4.0
+```
+
+The code is intentionally split into three layers:
+
+- **`xgid.js`** parses the raw XGID string into a plain JS object, strictly following the spec. No rendering decisions here.
+- **`board.js`** converts the parsed object into a normalised render state (always from the bottom player's fixed perspective) and draws it onto a `<canvas>`.
+- **`index.html`** wires the two together and provides the settings panel UI.
+
+---
+
+## Display conventions
+
+- **Bottom player** = the XGID Active Player (uppercase letters). Fixed for the entire game.
+- **Top player** = the XGID Opponent (lowercase letters). Fixed for the entire game.
+- **Point numbering** changes with turn:
+  - `turn=1` (bottom player on roll): pt 24 at top-right, pt 1 at bottom-right.
+  - `turn=-1` (top player on roll): pt 24 at bottom-right, pt 1 at top-right.
+- The physical board grid never moves — only the labels on the points change.
+- **Pip differential**: positive = trailing (more pips), negative = ahead (fewer pips).
 
 ---
 
 ## URL API
 
-All parameters are passed as query string arguments. All are optional and combinable.
+All parameters are passed as query string arguments. All are optional.
 
 ### Position
 
 | Parameter | Description | Example |
 |-----------|-------------|---------|
-| `xgid` | Full XGID string (preferred) | `xgid=XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10` |
+| `xgid` | Full XGID string | `xgid=XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10` |
 
-### XGID format reference
+### Display options
 
-```
-XGID=<pos>:<cube>:<owner>:<turn>:<dice>:<score0>:<score1>:<crawford>:<jacoby>:<matchlen>
-```
-
-| Field | Values | Notes |
-|-------|--------|-------|
-| `pos` | 26 chars | A–Z = bottom player (1–26 checkers), a–z = top player, `-` = empty |
-| `cube` | 0–15 | Log₂ of cube value (0=1, 1=2, 2=4, 3=8…) |
-| `owner` | -1, 0, 1 | -1=top, 0=centered, 1=bottom |
-| `turn` | 1, -1 | Who is on roll |
-| `dice` | two digits | e.g. `31` for 3-1. `00` = not rolled |
-| `score0` | integer | Bottom player score |
-| `score1` | integer | Top player score |
-| `matchlen` | integer | 0 = money game |
-
-### Pip counts
-
-| Parameter | Description | Example |
+| Parameter | Description | Default |
 |-----------|-------------|---------|
-| `pip0` | Bottom player pip count | `pip0=113` |
-| `pip1` | Top player pip count | `pip1=76` |
+| `flip` | Mirror board left↔right around the bar | `0` |
+| `bottom` | Bottom player checker color (hex, no `#`) | `1a1a1a` |
+| `top` | Top player checker color (hex, no `#`) | `ffffff` |
 
-Displayed below the board as:  
-`O: 76  (-37)` and `X: 113  (+37)`  
-The number in parentheses is the differential (positive = ahead in the race).
+### Equity values
 
-### Scores and match
-
-| Parameter | Description |
-|-----------|-------------|
-| `score0` | Override bottom player score |
-| `score1` | Override top player score |
-| `matchlen` | Override match length |
-
-### Dice
-
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `dice` | Two digits | `dice=31` |
-
-### Equity values (optional)
-
-Displayed in a column to the right of the board when any value is provided.
+Displayed in a panel to the right of the board when any value is provided.
 
 | Parameter | Description |
 |-----------|-------------|
@@ -79,22 +77,59 @@ Displayed in a column to the right of the board when any value is provided.
 | `edt` | Cubeful equity, double/take |
 | `edp` | Cubeful equity, double/pass |
 
-### Full example URL
+### Full example
 
 ```
-https://<your-username>.github.io/bgboard/?xgid=XGID=-b----E-C---eE---c-e----B-:0:0:1:31:3:1:0:0:5&pip0=113&pip1=76&ecl=0.42&end=0.44&edt=0.51&edp=1.00
+https://<your-username>.github.io/bgprint/
+  ?xgid=XGID=-b----E-C---eE---c-e----B-:0:0:-1:63:3:1:0:0:5
+  &flip=0
+  &bottom=1a1a1a&top=ffffff
+  &ecl=0.42&dcl=0.38&end=0.44&edt=0.51&edp=1.00
 ```
+
+---
+
+## XGID format reference
+
+```
+XGID=<board>:<cubeVal>:<cubeOwner>:<turn>:<dice>:<score1>:<score2>:<crawford>:<length>:<maxCube>
+```
+
+| Field | Values | Notes |
+|-------|--------|-------|
+| `board` | 26 chars | Index 0 = bar, indices 1–24 = points 1–24, index 25 = borne-off tray. Uppercase A–O = active player (1–15 checkers), lowercase a–o = opponent. `-` = empty. |
+| `cubeVal` | integer | Log₂ of cube face value: `0`=1, `1`=2, `2`=4, `3`=8… |
+| `cubeOwner` | -1, 0, 1 | `1`=active player owns, `-1`=opponent owns, `0`=centred |
+| `turn` | 1, -1 | `1`=active player on roll, `-1`=opponent on roll |
+| `dice` | two digits | e.g. `63` for 6-3, `00`=not yet rolled |
+| `score1` | integer | Active player's match score |
+| `score2` | integer | Opponent's match score |
+| `crawford` | 0, 1 | `1`=Crawford game |
+| `length` | integer | Match length. `0`=money game |
+| `maxCube` | integer | XG internal: log₂ of max cube evaluation ceiling |
+
+Scores and match length are read directly from the XGID string — no URL override needed.  
+Pip counts are computed automatically from the position.  
+Dice color matches the roller's checker color.
+
+---
+
+## Settings panel
+
+Click the **☰** button (top-left) to open the settings panel:
+
+- **Flip board** — mirrors the board left↔right around the bar (changes bear-off side).
+- **Bottom / Top checker color** — color pickers; any CSS color works. Changes take effect immediately.
+- **Equity fields** — enter Ecl, Dcl, End, Edt, Edp values; they appear in the equity panel alongside the board.
 
 ---
 
 ## Embed as iframe
 
-Any page can embed a board with a single line:
-
 ```html
 <iframe
-  src="https://<your-username>.github.io/bgboard/?xgid=XGID=..."
-  width="640" height="500" frameborder="0">
+  src="https://<your-username>.github.io/bgprint/?xgid=XGID=..."
+  width="700" height="560" frameborder="0">
 </iframe>
 ```
 
@@ -102,69 +137,40 @@ Any page can embed a board with a single line:
 
 ## Run locally
 
-No build step or install required. Just serve the folder with any static server:
+No build step or install required.
 
-**Option 1 — Python (built-in, zero install)**
+**Python (built-in)**
 ```bash
-cd bgboard
+cd bgprint
 python -m http.server 8080
-# Open http://localhost:8080
+# open http://localhost:8080
 ```
 
-**Option 2 — Node (if you have npm)**
+**Node**
 ```bash
 npx serve .
-# Open the URL it prints
 ```
 
-**Option 3 — VS Code**  
-Install the *Live Server* extension, right-click `index.html` → *Open with Live Server*.
+**VS Code** — install the *Live Server* extension, right-click `index.html` → *Open with Live Server*.
+
+> **Tip:** during development, open browser DevTools → Network tab → check **Disable cache** to avoid stale JS being served.
 
 ---
 
 ## Publish to GitHub Pages
 
 ```bash
-# 1. Create a new repo on github.com named "bgboard", then:
 git init
 git add .
 git commit -m "initial commit"
 git branch -M main
-git remote add origin https://github.com/<your-username>/bgboard.git
+git remote add origin https://github.com/<your-username>/bgprint.git
 git push -u origin main
 ```
 
-Then in your repo on GitHub:  
-**Settings → Pages → Source: Deploy from branch → Branch: main → / (root) → Save**
+Then in your GitHub repo: **Settings → Pages → Source: Deploy from branch → Branch: main → / (root) → Save**
 
-Your page will be live at `https://<your-username>.github.io/bgboard/` within ~60 seconds.
-
----
-
-## Project structure
-
-```
-bgboard/
-  index.html    ← the entire application (HTML + CSS + JS, single file)
-  README.md     ← this file
-  LICENSE       ← CC BY-SA 4.0
-```
-
----
-
-## Roadmap
-
-- [ ] GnuBG position ID support (base64 decoding)
-- [ ] PNG download button
-- [ ] Dark mode
-- [ ] Configurable checker colors
-- [ ] Image → XGID (requires backend, see [bgboard-vision](../bgboard-vision))
-
----
-
-## Contributing
-
-Issues and pull requests welcome. Please keep the zero-dependency constraint — no npm, no bundler, no framework.
+Live at `https://<your-username>.github.io/bgprint/` within ~60 seconds.
 
 ---
 
@@ -172,4 +178,4 @@ Issues and pull requests welcome. Please keep the zero-dependency constraint —
 
 [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)
 
-You are free to share and adapt this work for any purpose, including commercially, as long as you give appropriate credit and distribute your contributions under the same license.
+Free to share and adapt for any purpose, including commercially, provided you give credit and distribute contributions under the same license.
