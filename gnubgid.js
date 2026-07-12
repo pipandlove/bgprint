@@ -130,8 +130,9 @@ function parseGnuBGID(str) {
   // ── Decode position ─────────────────────────────────────────────────────────
   const posBytes = b64ToBytes(posStr, 14, 10);
 
-  const onRollZones    = decodeZones(posBytes,  0);
-  const notOnRollZones = decodeZones(posBytes, 40);
+  // Spec: bits 0–39 = player NOT on roll, bits 40–79 = player ON roll
+  const notOnRollZones = decodeZones(posBytes,  0);
+  const onRollZones    = decodeZones(posBytes, 40);
 
   // Build points[0..25]: 0=bar, 1..24=absolute pts, 25=off tray
   const points = [];
