@@ -1,0 +1,148 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #ebebeb;
+  font-family: 'Georgia', serif;
+  color: #111;
+  min-height: 100vh;
+}
+
+/* ── Settings toggle button ── */
+#menu-btn {
+  position: fixed; top: 16px; left: 16px; z-index: 100;
+  background: #222; color: #fff; border: none;
+  width: 36px; height: 36px; border-radius: 4px;
+  font-size: 1.1rem; cursor: pointer;
+}
+#menu-btn:hover { background: #444; }
+
+/* ── Settings panel ── */
+#settings {
+  position: fixed; top: 0; left: 0; z-index: 99;
+  width: 240px; height: 100vh;
+  background: #fff; border-right: 1px solid #ddd;
+  padding: 60px 20px 20px;
+  overflow-y: auto;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+}
+#settings.hidden { display: none; }
+
+#settings h2 {
+  font-size: 0.75rem; text-transform: uppercase;
+  letter-spacing: 0.12em; color: #aaa; margin-bottom: 20px;
+}
+#settings h3 {
+  font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #bbb; margin-bottom: 10px;
+}
+#settings section { margin-bottom: 24px; }
+
+.toggle { display: flex; align-items: center; gap: 8px;
+          font-size: 0.8rem; color: #444; cursor: pointer; }
+.toggle input { cursor: pointer; }
+
+.color-row { display: flex; justify-content: space-between;
+             align-items: center; margin-bottom: 8px;
+             font-size: 0.78rem; color: #555; }
+.color-row input[type=color] { width: 36px; height: 24px;
+  border: 1px solid #ddd; border-radius: 3px; cursor: pointer; padding: 0; }
+
+.eq-inputs { display: flex; flex-direction: column; gap: 6px; }
+.eq-inputs label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.72rem; color: #777; font-family: monospace;
+}
+.eq-inputs input {
+  width: 80px; font-family: monospace; font-size: 0.75rem;
+  padding: 3px 6px; border: 1px solid #ddd; border-radius: 3px;
+  text-align: right;
+}
+
+/* ── Main content ── */
+main {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 16px 40px;
+  /* ensure canvas never overflows viewport */
+  overflow-x: auto;
+}
+
+#board-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+h1 {
+  font-size: 1.1rem; font-weight: normal;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: #444; margin-bottom: 4px;
+}
+.subtitle { font-size: 0.75rem; color: #aaa; font-family: monospace; margin-bottom: 24px; }
+
+/* ── Board + equity ── */
+#board-wrap {
+  background: #fff; border: 1px solid #ddd; border-radius: 8px;
+  padding: 20px; display: inline-flex; gap: 20px; align-items: flex-start;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+canvas { display: block; }
+
+/* ── Equity panel ── */
+#equity-panel {
+  display: flex; flex-direction: column; gap: 5px;
+  min-width: 116px; padding-top: 2px;
+}
+#equity-panel.hidden { display: none; }
+
+.eq-title {
+  font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+  color: #aaa; margin-bottom: 6px;
+  border-bottom: 1px solid #eee; padding-bottom: 4px;
+}
+.eq-sep { height: 1px; background: #eee; margin: 6px 0; }
+.eq-row { display: flex; justify-content: space-between; gap: 10px; }
+.eq-label { font-size: 0.67rem; color: #999; font-family: monospace; }
+.eq-value { font-size: 0.82rem; font-family: monospace; font-weight: bold; color: #111; }
+.eq-value.neg { color: #888; }
+
+/* ── Controls ── */
+#controls {
+  margin-top: 20px; width: 100%; max-width: 680px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+#controls label {
+  font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #bbb;
+}
+#xgid-input {
+  width: 100%; font-family: monospace; font-size: 0.8rem;
+  padding: 9px 11px; border: 1px solid #ccc; border-radius: 4px;
+  background: #fafafa; color: #111; outline: none;
+}
+#xgid-input:focus { border-color: #777; background: #fff; }
+#error-msg { font-size: 0.73rem; color: #b00; font-family: monospace; min-height: 1em; }
+
+.btn-row { display: flex; justify-content: space-between; }
+#render-btn {
+  padding: 8px 20px; background: #222; color: #fff; border: none;
+  border-radius: 4px; font-size: 0.78rem; cursor: pointer;
+}
+#render-btn:hover { background: #444; }
+#download-btn {
+  padding: 7px 16px; background: transparent; color: #999;
+  border: 1px solid #ddd; border-radius: 4px; font-size: 0.73rem; cursor: pointer;
+}
+#download-btn:hover { color: #222; border-color: #999; }
+
+/* ── API docs ── */
+#api-docs {
+  margin-top: 32px; max-width: 680px; width: 100%;
+  font-size: 0.75rem; color: #888; line-height: 1.8;
+}
+#api-docs h2 {
+  font-size: 0.66rem; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #bbb; margin-bottom: 8px;
+}
+#api-docs pre {
+  background: #f7f7f7; border: 1px solid #e5e5e5; border-radius: 4px;
+  padding: 11px; font-family: monospace; font-size: 0.75rem; color: #555;
+}

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>bgprint — Backgammon Board Renderer</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ☰ Settings toggle -->
+<button id="menu-btn" title="Settings">&#9776;</button>
+
+<!-- Side settings panel -->
+<aside id="settings" class="hidden">
+  <h2>Settings</h2>
+
+  <section>
+    <h3>Board</h3>
+    <label class="toggle">
+      <input type="checkbox" id="opt-flip"/>
+      <span>Flip board (bear-off side)</span>
+    </label>
+  </section>
+
+  <section>
+    <h3>Checker colors</h3>
+    <label class="color-row">
+      <span>Bottom player</span>
+      <input type="color" id="opt-bottom-color" value="#1a1a1a"/>
+    </label>
+    <label class="color-row">
+      <span>Top player</span>
+      <input type="color" id="opt-top-color" value="#ffffff"/>
+    </label>
+  </section>
+
+  <section>
+    <h3>Equity</h3>
+    <div class="eq-inputs">
+      <label>Ecl <input type="number" id="eq-ecl" step="0.001" placeholder="—"/></label>
+      <label>Dcl <input type="number" id="eq-dcl" step="0.001" placeholder="—"/></label>
+      <label>End <input type="number" id="eq-end" step="0.001" placeholder="—"/></label>
+      <label>Edt <input type="number" id="eq-edt" step="0.001" placeholder="—"/></label>
+      <label>Edp <input type="number" id="eq-edp" step="0.001" placeholder="—"/></label>
+    </div>
+  </section>
+</aside>
+
+<!-- Main content -->
+<main>
+  <h1>bgprint</h1>
+  <p class="subtitle">backgammon position renderer</p>
+
+  <div id="board-wrap">
+    <canvas id="board"></canvas>
+    <div id="equity-panel" class="hidden">
+      <div class="eq-title">Equity</div>
+      <div class="eq-row"><span class="eq-label">Ecl</span><span class="eq-value" id="eq-ecl-val">—</span></div>
+      <div class="eq-row"><span class="eq-label">Dcl</span><span class="eq-value" id="eq-dcl-val">—</span></div>
+      <div class="eq-sep"></div>
+      <div class="eq-row"><span class="eq-label">End</span><span class="eq-value" id="eq-end-val">—</span></div>
+      <div class="eq-row"><span class="eq-label">Edt</span><span class="eq-value" id="eq-edt-val">—</span></div>
+      <div class="eq-row"><span class="eq-label">Edp</span><span class="eq-value" id="eq-edp-val">—</span></div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <label for="xgid-input">XGID string</label>
+    <input id="xgid-input" type="text"
+      placeholder="XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10"
+      spellcheck="false" autocomplete="off"/>
+    <div id="error-msg"></div>
+    <div class="btn-row">
+      <button id="render-btn">Render</button>
+      <button id="download-btn">Download PNG</button>
+    </div>
+  </div>
+
+  <div id="api-docs">
+    <h2>URL API</h2>
+    <pre>?xgid=XGID=...
+&amp;flip=1
+&amp;bottom=1a1a1a&amp;top=ffffff
+&amp;ecl=0.42&amp;dcl=0.38&amp;end=0.44&amp;edt=0.51&amp;edp=1.00</pre>
+  </div>
+</main>
+
+<script src="xgid.js"></script>
+<script src="board.js"></script>
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+const opts = {
+  flip:        false,
+  bottomColor: '#1a1a1a',
+  topColor:    '#ffffff',
+};
+const equity = { ecl:null, dcl:null, end:null, edt:null, edp:null };
+
+const DEFAULT = 'XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10';
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function render(xgidStr) {
+  const errEl = document.getElementById('error-msg');
+  errEl.textContent = '';
+  let parsed, state;
+  try {
+    parsed = parseXGID(xgidStr);
+    state  = buildRenderState(parsed);
+  } catch(e) {
+    errEl.textContent = '⚠ ' + e.message;
+    return;
+  }
+  const canvas = document.getElementById('board');
+  const ctx    = canvas.getContext('2d');
+  drawBoard(ctx, state, opts);
+  updateEquityPanel();
+}
+
+// ── Equity panel ─────────────────────────────────────────────────────────────
+function updateEquityPanel() {
+  const panel = document.getElementById('equity-panel');
+  const fields = {
+    ecl: 'eq-ecl-val', dcl: 'eq-dcl-val',
+    end: 'eq-end-val', edt: 'eq-edt-val', edp: 'eq-edp-val',
+  };
+  let any = false;
+  for (const [k, id] of Object.entries(fields)) {
+    const el = document.getElementById(id);
+    const v  = equity[k];
+    if (v !== null && !isNaN(v)) {
+      el.textContent = (v >= 0 ? '+' : '') + v.toFixed(3);
+      el.className   = 'eq-value' + (v < 0 ? ' neg' : '');
+      any = true;
+    } else {
+      el.textContent = '—'; el.className = 'eq-value';
+    }
+  }
+  panel.classList.toggle('hidden', !any);
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+function boot() {
+  const canvas = document.getElementById('board');
+  canvas.width  = CW;   // from board.js
+  canvas.height = CH;
+
+  const params = Object.fromEntries(new URLSearchParams(window.location.search));
+  const xgid   = params.xgid || DEFAULT;
+
+  // Apply URL params to opts
+  if (params.flip)   opts.flip        = params.flip === '1';
+  if (params.bottom) opts.bottomColor = '#' + params.bottom;
+  if (params.top)    opts.topColor    = '#' + params.top;
+
+  // Apply URL params to equity
+  for (const k of ['ecl','dcl','end','edt','edp']) {
+    if (params[k] !== undefined) equity[k] = parseFloat(params[k]);
+  }
+
+  // Sync settings panel
+  document.getElementById('opt-flip').checked = opts.flip;
+  document.getElementById('opt-bottom-color').value = opts.bottomColor;
+  document.getElementById('opt-top-color').value    = opts.topColor;
+  for (const k of ['ecl','dcl','end','edt','edp']) {
+    const el = document.getElementById('eq-' + k);
+    if (equity[k] !== null) el.value = equity[k];
+  }
+
+  document.getElementById('xgid-input').value = xgid;
+  render(xgid);
+}
+
+// ── Event listeners ───────────────────────────────────────────────────────────
+document.getElementById('render-btn').addEventListener('click', () => {
+  // Read equity values from inputs
+  for (const k of ['ecl','dcl','end','edt','edp']) {
+    const v = parseFloat(document.getElementById('eq-' + k).value);
+    equity[k] = isNaN(v) ? null : v;
+  }
+  render(document.getElementById('xgid-input').value.trim() || DEFAULT);
+});
+
+document.getElementById('xgid-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('render-btn').click();
+});
+
+document.getElementById('download-btn').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.download = 'bgprint.png';
+  a.href = document.getElementById('board').toDataURL();
+  a.click();
+});
+
+document.getElementById('menu-btn').addEventListener('click', () => {
+  document.getElementById('settings').classList.toggle('hidden');
+});
+
+document.getElementById('opt-flip').addEventListener('change', e => {
+  opts.flip = e.target.checked;
+  render(document.getElementById('xgid-input').value.trim() || DEFAULT);
+});
+
+document.getElementById('opt-bottom-color').addEventListener('input', e => {
+  opts.bottomColor = e.target.value;
+  render(document.getElementById('xgid-input').value.trim() || DEFAULT);
+});
+
+document.getElementById('opt-top-color').addEventListener('input', e => {
+  opts.topColor = e.target.value;
+  render(document.getElementById('xgid-input').value.trim() || DEFAULT);
+});
+
+boot();
+</script>
+</body>
+</html>
