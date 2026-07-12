@@ -1,5 +1,13 @@
 # bgprint
 
+🎲 **Live demo:** [pipeandlove.github.io/bgprint](https://pipeandlove.github.io/bgprint)
+
+Try it with a position:
+
+```
+https://pipeandlove.github.io/bgprint/?xgid=XGID=a--AaBBABBa-cA---cbbbB-B--:0:0:-1:00:0:0:0:0:10
+```
+
 **A static, zero-dependency backgammon board renderer.**  
 Parses an XGID string and renders a clean monochrome board on an HTML Canvas — no server, no build step, no dependencies.
 
@@ -9,8 +17,10 @@ Parses an XGID string and renders a clean monochrome board on an HTML Canvas —
 
 ## Live demo
 
+🎲 [pipeandlove.github.io/bgprint](https://pipeandlove.github.io/bgprint)
+
 ```
-https://<your-username>.github.io/bgprint/?xgid=XGID=-b----E-C---eE---c-e----B-:0:0:1:00:0:0:0:0:10
+https://pipeandlove.github.io/bgprint/?xgid=XGID=a--AaBBABBa-cA---cbbbB-B--:0:0:-1:00:0:0:0:0:10
 ```
 
 ---
