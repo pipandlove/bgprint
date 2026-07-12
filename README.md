@@ -1,11 +1,11 @@
 # bgprint
 
-🎲 **Live demo:** [pipeandlove.github.io/bgprint](https://pipeandlove.github.io/bgprint)
+🎲 **Live demo:** [pipandlove.github.io/bgprint](https://pipandlove.github.io/bgprint)
 
 Try it with a position:
 
 ```
-https://pipeandlove.github.io/bgprint/?xgid=XGID=a--AaBBABBa-cA---cbbbB-B--:0:0:-1:00:0:0:0:0:10
+https://pipandlove.github.io/bgprint/?xgid=XGID=a--AaBBABBa-cA---cbbbB-B--:0:0:-1:00:0:0:0:0:10
 ```
 
 **A static, zero-dependency backgammon board renderer.**  
