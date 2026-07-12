@@ -174,6 +174,15 @@ Live at `https://<your-username>.github.io/bgprint/` within ~60 seconds.
 
 ---
 
+## Roadmap
+
+- [ ] GnuBG position ID support (base64 decoding)
+- [ ] Display EPC (Keith count) when pip count is under 60
+- [ ] Add a URL parameter to render just the board image with no surrounding page UI
+- [ ] Display winning chances (simple win, gammon, backgammon) for both players
+
+---
+
 ## License
 
 [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)
