@@ -56,12 +56,15 @@ function parseXGID(str) {
   }
 
   // ── Derived totals (validation) ─────────────────────────────────────────
+  // i=0:  active bar (and possibly opponent bar)
+  // i=1..24: board points
+  // i=25: active bar (second slot) — NOT the off tray despite spec wording
+  // Off counts are derived: 15 minus all on-board and on-bar checkers
   let activeOnBoard = 0, opponentOnBoard = 0;
   for (let i = 0; i < 26; i++) {
     activeOnBoard   += points[i].active;
     opponentOnBoard += points[i].opponent;
   }
-  // Active off is not serialised; derive it.
   const activeOff   = 15 - activeOnBoard;
   const opponentOff = 15 - opponentOnBoard;
   if (activeOff   < 0) throw new Error(`Active player has ${activeOnBoard} checkers on board/bar (>15)`);

@@ -42,8 +42,8 @@ function buildRenderState(parsed) {
   }
   return {
     board,                                      // board[1..24] = {bottom, top}
-    bottomBar:  parsed.points[0].active,   // active (bottom) on bar
-    topBar:     parsed.points[0].opponent, // opponent (top) on bar — real XG uses i=0 for both
+    bottomBar:  parsed.points[0].active + parsed.points[25].active,   // i=0 and i=25 are both active bar slots
+    topBar:     parsed.points[0].opponent,                              // opponent bar at i=0
     bottomOff:  parsed.activeOff,
     topOff:     parsed.opponentOff,
     turn:       parsed.turn === 1 ? 'bottom' : 'top',
