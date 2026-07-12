@@ -13,15 +13,6 @@ Parses an XGID string and renders a clean monochrome board on an HTML Canvas —
 
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
----
-
-## Live demo
-
-🎲 [pipeandlove.github.io/bgprint](https://pipeandlove.github.io/bgprint)
-
-```
-https://pipeandlove.github.io/bgprint/?xgid=XGID=a--AaBBABBa-cA---cbbbB-B--:0:0:-1:00:0:0:0:0:10
-```
 
 ---
 
