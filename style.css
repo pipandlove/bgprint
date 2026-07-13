@@ -152,6 +152,35 @@ canvas { display: block; }
 }
 #download-btn:hover { color: #222; border-color: #999; }
 
+/* ── ID display panel ── */
+#id-display {
+  margin-top: 16px; width: 100%; max-width: 680px;
+  background: #f7f7f7; border: 1px solid #e5e5e5;
+  border-radius: 4px; padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+#id-display.hidden { display: none; }
+
+.id-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.id-fmt {
+  font-family: monospace; font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #aaa; min-width: 42px; flex-shrink: 0;
+}
+.id-value {
+  font-family: monospace; font-size: 0.75rem; color: #444;
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  user-select: all;
+}
+.copy-btn {
+  flex-shrink: 0; padding: 2px 7px; background: transparent;
+  border: 1px solid #ddd; border-radius: 3px; font-size: 0.75rem;
+  cursor: pointer; color: #999; line-height: 1.4;
+}
+.copy-btn:hover { border-color: #999; color: #444; }
+.copy-btn.copied { border-color: #4a9; color: #4a9; }
+
 /* ── API docs ── */
 #api-docs {
   margin-top: 32px; max-width: 680px; width: 100%;

@@ -83,6 +83,19 @@
     </div>
   </div>
 
+  <div id="id-display" class="hidden">
+    <div class="id-row">
+      <span class="id-fmt">XGID</span>
+      <span class="id-value" id="disp-xgid">—</span>
+      <button class="copy-btn" data-target="disp-xgid" title="Copy">⎘</button>
+    </div>
+    <div class="id-row">
+      <span class="id-fmt">GnuBG</span>
+      <span class="id-value" id="disp-gnubg">—</span>
+      <button class="copy-btn" data-target="disp-gnubg" title="Copy">⎘</button>
+    </div>
+  </div>
+
   <div id="api-docs">
     <h2>URL API</h2>
     <pre>?xgid=XGID=...          (XGID format)
@@ -95,6 +108,7 @@
 
 <script src="xgid.js"></script>
 <script src="gnubgid.js"></script>
+<script src="encode.js"></script>
 <script src="board.js"></script>
 <script>
 // ── State ────────────────────────────────────────────────────────────────────
@@ -139,6 +153,19 @@ function render(idStr, fmt) {
   const canvas = document.getElementById('board');
   drawBoard(canvas.getContext('2d'), state, opts);
   updateEquityPanel();
+  updateIDDisplay(parsed);
+}
+
+// ── ID display panel ──────────────────────────────────────────────────────────
+function updateIDDisplay(parsed) {
+  const panel = document.getElementById('id-display');
+  try {
+    document.getElementById('disp-xgid').textContent  = toXGID(parsed);
+    document.getElementById('disp-gnubg').textContent = toGnuBGID(parsed);
+    panel.classList.remove('hidden');
+  } catch(e) {
+    panel.classList.add('hidden');
+  }
 }
 
 // ── Equity panel ─────────────────────────────────────────────────────────────
@@ -251,6 +278,32 @@ document.getElementById('opt-bottom-color').addEventListener('input', e => {
 document.getElementById('opt-top-color').addEventListener('input', e => {
   opts.topColor = e.target.value;
   render(document.getElementById('id-input').value.trim() || DEFAULTS[currentFmt]);
+});
+
+// ── Copy buttons ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const text = document.getElementById(btn.dataset.target).textContent;
+    const flash = () => {
+      const orig = btn.textContent;
+      btn.textContent = '✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
+    };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(flash);
+    } else {
+      // Fallback for non-HTTPS (e.g. local http server)
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      flash();
+    }
+  });
 });
 
 boot();
