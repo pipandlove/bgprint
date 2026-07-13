@@ -8,6 +8,12 @@ Try it with a position:
 https://pipandlove.github.io/bgprint/?xgid=XGID=a--AaBBABBa-cA---cbbbB-B--:0:0:-1:00:0:0:0:0:10
 ```
 
+To get just the board image with no surrounding UI, add `&raw=1`:
+
+```
+https://pipandlove.github.io/bgprint/?xgid=XGID=a--AaBBABBa-cA---cbbbB-B--:0:0:-1:00:0:0:0:0:10&raw=1
+```
+
 **A static, zero-dependency backgammon board renderer.**  
 Parses an XGID or GnuBG ID and renders a clean monochrome board on an HTML Canvas — no server, no build step, no dependencies.
 
@@ -28,6 +34,8 @@ Parses an XGID or GnuBG ID and renders a clean monochrome board on an HTML Canva
 - **Settings panel** (☰ button) — flip board, custom checker colors, equity inputs
 - **URL API** — every option passable as a query string for direct linking or embedding
 - **PNG download** button
+- **ID cross-display** — after each render, both the XGID and GnuBG ID of the position are shown with one-click copy buttons, regardless of which format was entered
+- **Raw image mode** (`?raw=1`) — renders only the board with no surrounding UI, ideal for iframes or screenshot tools
 - **iframe embeddable** — one `<iframe>` tag is all you need
 - **Zero dependencies** — vanilla JS, HTML Canvas, no npm, no build step
 
@@ -41,6 +49,7 @@ bgprint/
   xgid.js      ← pure XGID parser (no rendering)
   gnubgid.js   ← GnuBG ID parser (same output object as xgid.js)
   board.js     ← renderer (buildRenderState, drawBoard, computePips)
+  encode.js    ← encoders (toXGID, toGnuBGID) — inverse of the parsers
   style.css    ← layout and settings panel styles
   README.md    ← this file
   LICENSE      ← CC BY-SA 4.0
@@ -214,7 +223,6 @@ Live at `https://pipandlove.github.io/bgprint/` within ~60 seconds.
 ## Roadmap
 
 - [ ] Display EPC (Keith count) when pip count is under 60
-- [ ] Add a URL parameter to render just the board image with no surrounding page UI
 - [ ] Display winning chances (simple win, gammon, backgammon) for both players
 
 ---

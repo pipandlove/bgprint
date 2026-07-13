@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>bgprint — Backgammon Board Renderer</title>
   <link rel="stylesheet" href="style.css"/>
+  <style>
+    body.raw-mode { background: #fff; padding: 0; display: block; }
+    body.raw-mode main, body.raw-mode #menu-btn, body.raw-mode #settings { display: none; }
+    body.raw-mode #raw-canvas-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    #raw-canvas-wrap { display: none; }
+  </style>
 </head>
 <body>
 
@@ -106,6 +112,7 @@
   </div>
 </main>
 
+<div id="raw-canvas-wrap"><canvas id="raw-board"></canvas></div>
 <script src="xgid.js"></script>
 <script src="gnubgid.js"></script>
 <script src="encode.js"></script>
@@ -233,6 +240,21 @@ function boot() {
   for (const k of ['ecl','dcl','end','edt','edp']) {
     const el = document.getElementById('eq-' + k);
     if (equity[k] !== null) el.value = equity[k];
+  }
+
+  // Raw mode: ?raw=1 — render only the board image, no UI
+  if (params.raw === '1') {
+    document.body.classList.add('raw-mode');
+    document.getElementById('raw-canvas-wrap').style.display = 'flex';
+    const rc = document.getElementById('raw-board');
+    rc.width = CW; rc.height = CH;
+    const errEl = document.getElementById('error-msg');
+    try {
+      const parsed = parseID(idStr || DEFAULTS[fmt], fmt);
+      const state  = buildRenderState(parsed);
+      drawBoard(rc.getContext('2d'), state, opts);
+    } catch(e) { console.error(e); }
+    return; // skip normal boot
   }
 
   setFormat(fmt);
