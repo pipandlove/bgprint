@@ -6,9 +6,9 @@
   <title>bgprint — Backgammon Board Renderer</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
-    body.raw-mode { background: #fff; padding: 0; display: block; }
+    body.raw-mode { background: #ebebeb; margin: 0; padding: 0; overflow: hidden; }
     body.raw-mode main, body.raw-mode #menu-btn, body.raw-mode #settings { display: none; }
-    body.raw-mode #raw-canvas-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    body.raw-mode #raw-canvas-wrap { display: block; line-height: 0; }
     #raw-canvas-wrap { display: none; }
   </style>
 </head>
@@ -106,14 +106,9 @@
     <h2>URL API</h2>
     <pre>?xgid=XGID=...          (XGID format)
 ?gnubg=XXXXXXXXXXXXXX:XXXXXXXXXXXX  (GnuBG format)
-&raw=1 (just the raw picture of the board)
-&flip=1 (invert the board)
-&bottom=1a1a1a&top=ffffff (color of the checkers)
-&ecl=0.42 (cubeless equity, no double)
-&dcl=0.38 (cubeless equity double/take)
-&end=0.44 (cubeful equity, no double)
-&edt=0.51 (cubeful equity double/take)
-&edp=1.00 (cubeful equity double/pass)</pre>
+&flip=1
+&bottom=1a1a1a&top=ffffff
+&ecl=0.42&dcl=0.38&end=0.44&edt=0.51&edp=1.00</pre>
   </div>
 </main>
 
