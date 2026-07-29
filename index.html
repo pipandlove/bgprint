@@ -6,10 +6,11 @@
   <title>bgprint — Backgammon Board Renderer</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
-    body.raw-mode { background: #ebebeb; margin: 0; padding: 0; overflow: hidden; }
+    body.raw-mode { margin: 0; padding: 0; background: #fff; }
     body.raw-mode main, body.raw-mode #menu-btn, body.raw-mode #settings { display: none; }
-    body.raw-mode #raw-canvas-wrap { display: block; line-height: 0; }
-    #raw-canvas-wrap { display: none; }
+    #raw-img-wrap { display: none; }
+    body.raw-mode #raw-img-wrap { display: block; }
+    #raw-img-wrap img { display: block; }
   </style>
 </head>
 <body>
@@ -112,7 +113,7 @@
   </div>
 </main>
 
-<div id="raw-canvas-wrap"><canvas id="raw-board"></canvas></div>
+<div id="raw-img-wrap"><img id="raw-img" alt="backgammon position"/></div>
 <script src="xgid.js"></script>
 <script src="gnubgid.js"></script>
 <script src="encode.js"></script>
@@ -242,17 +243,16 @@ function boot() {
     if (equity[k] !== null) el.value = equity[k];
   }
 
-  // Raw mode: ?raw=1 — render only the board image, no UI
+  // Raw mode: ?raw=1 — render board to a PNG and show as a plain <img> (right-click → Save)
   if (params.raw === '1') {
     document.body.classList.add('raw-mode');
-    document.getElementById('raw-canvas-wrap').style.display = 'flex';
-    const rc = document.getElementById('raw-board');
-    rc.width = CW; rc.height = CH;
-    const errEl = document.getElementById('error-msg');
+    const offscreen = document.createElement('canvas');
+    offscreen.width = CW; offscreen.height = CH;
     try {
       const parsed = parseID(idStr || DEFAULTS[fmt], fmt);
       const state  = buildRenderState(parsed);
-      drawBoard(rc.getContext('2d'), state, opts);
+      drawBoard(offscreen.getContext('2d'), state, opts);
+      document.getElementById('raw-img').src = offscreen.toDataURL('image/png');
     } catch(e) { console.error(e); }
     return; // skip normal boot
   }
