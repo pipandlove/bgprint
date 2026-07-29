@@ -86,7 +86,14 @@
     <div id="error-msg"></div>
     <div class="btn-row">
       <button id="render-btn">Render</button>
-      <button id="download-btn">Download PNG</button>
+      <div class="download-group">
+        <button id="download-btn">Download PNG</button>
+        <select id="download-res" title="Export resolution">
+          <option value="1">1× &nbsp;624 × 500</option>
+          <option value="2" selected>2× 1248 × 1000</option>
+          <option value="3">3× 1872 × 1500</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -138,6 +145,22 @@ const LABELS = {
   xgid:  'XGID string',
   gnubg: 'GnuBG ID  (PositionID:MatchID)',
 };
+
+// ── Render to data URL at given scale ────────────────────────────────────────
+function renderToDataURL(scale) {
+  const idStr = document.getElementById('id-input').value.trim() || DEFAULTS[currentFmt];
+  try {
+    const parsed = parseID(idStr, currentFmt);
+    const state  = buildRenderState(parsed);
+    const off = document.createElement('canvas');
+    off.width  = CW * scale;
+    off.height = CH * scale;
+    const ctx = off.getContext('2d');
+    ctx.scale(scale, scale);
+    drawBoard(ctx, state, opts);
+    return off.toDataURL('image/png');
+  } catch(e) { return ''; }
+}
 
 // ── Parse any format ──────────────────────────────────────────────────────────
 function parseID(str, fmt) {
@@ -246,12 +269,15 @@ function boot() {
   // Raw mode: ?raw=1 — render board to a PNG and show as a plain <img> (right-click → Save)
   if (params.raw === '1') {
     document.body.classList.add('raw-mode');
+    const rawScale = 3; // highest quality for raw mode
     const offscreen = document.createElement('canvas');
-    offscreen.width = CW; offscreen.height = CH;
+    offscreen.width = CW * rawScale; offscreen.height = CH * rawScale;
     try {
       const parsed = parseID(idStr || DEFAULTS[fmt], fmt);
       const state  = buildRenderState(parsed);
-      drawBoard(offscreen.getContext('2d'), state, opts);
+      const ctx = offscreen.getContext('2d');
+      ctx.scale(rawScale, rawScale);
+      drawBoard(ctx, state, opts);
       document.getElementById('raw-img').src = offscreen.toDataURL('image/png');
     } catch(e) { console.error(e); }
     return; // skip normal boot
@@ -277,9 +303,10 @@ document.getElementById('id-input').addEventListener('keydown', e => {
 });
 
 document.getElementById('download-btn').addEventListener('click', () => {
+  const scale = parseInt(document.getElementById('download-res').value) || 2;
   const a = document.createElement('a');
   a.download = 'bgprint.png';
-  a.href = document.getElementById('board').toDataURL();
+  a.href = renderToDataURL(scale);
   a.click();
 });
 
