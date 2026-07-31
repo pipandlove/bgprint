@@ -204,7 +204,8 @@ function drawBoard(ctx, state, opts) {
       ctx.lineTo(cx,        BOTTTRIY - TRIH);
     }
     ctx.closePath();
-    ctx.fillStyle = dark ? '#555' : '#ccc'; ctx.fill();
+    ctx.fillStyle = dark ? '#888' : '#e8e8e8'; ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 0.5; ctx.stroke();
   }
   ctx.restore();
 
