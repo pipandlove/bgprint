@@ -204,7 +204,7 @@ function drawBoard(ctx, state, opts) {
       ctx.lineTo(cx,        BOTTTRIY - TRIH);
     }
     ctx.closePath();
-    ctx.fillStyle = dark ? '#888' : '#e8e8e8'; ctx.fill();
+    ctx.fillStyle = dark ? '#aaa' : '#ffffff'; ctx.fill();
     ctx.strokeStyle = '#000'; ctx.lineWidth = 0.5; ctx.stroke();
   }
   ctx.restore();
@@ -288,7 +288,7 @@ function drawStack(ctx, pt, count, color, flip) {
 function drawChecker(ctx, cx, cy, color) {
   ctx.beginPath(); ctx.arc(cx, cy, CR, 0, Math.PI*2);
   ctx.fillStyle = color; ctx.fill();
-  ctx.strokeStyle = color === '#ffffff' ? '#444' : '#666';
+  ctx.strokeStyle = '#000';
   ctx.lineWidth = 1.2; ctx.stroke();
 }
 
